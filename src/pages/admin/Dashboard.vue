@@ -1,15 +1,9 @@
 <template>
   <q-page padding>
-    <q-card>
-      <q-form></q-form>
-    </q-card>
+    <!-- content -->
   </q-page>
 </template>
 
 <script setup lang="ts">
-
+//
 </script>
-
-<style scoped>
-
-</style>

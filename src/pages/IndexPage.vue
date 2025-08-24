@@ -7,28 +7,45 @@
           <div class="col-xs-12 col-sm-12 col-md-5 flex flex-center">
             <div style="width: 500px">
               <p class="text-subtitle1 text-bold">MockHaven - Sign In</p>
-              <form>
+              <form @submit.prevent="login">
                 <q-input
                   autofocus
                   label="Email Address"
                   type="email"
-                  model-value=""
+                  v-model="loginField.userId"
                   outlined
-                  dense
-                />
+                  :rules="[val => val.length > 0 && val.includes('@') && val.includes('.') || 'Please input a valid Email Address']"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="account_circle" />
+                  </template>
+                </q-input>
                 <q-input
                   label="Password"
-                  type="password"
-                  model-value=""
+                  :type="isPassword ? 'password' : 'text'"
+                  v-model="loginField.password"
                   outlined
-                  dense
-                />
+                  :rules="[val => val.length >= 8 || 'Please input a valid Password']"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="vpn_key" />
+                  </template>
+                  <template v-slot:append>
+                    <q-icon
+                      :name="isPassword ? 'visibility_off' : 'visibility'"
+                      class="cursor-pointer"
+                      @click="isPassword = !isPassword"
+                    />
+                  </template>
+                </q-input>
                 <div class="q-mt-sm">
                   <router-link  to="/">Forgot Password?</router-link>
                   <q-btn
                     label="Sign In"
+                    :loading="loading"
                     type="submit"
                     class="float-right"
+                    color="primary"
                   />
                 </div>
               </form>
@@ -41,34 +58,51 @@
 </template>
 
 <script setup lang="ts">
-// import { ref } from 'vue';
-// import type { Todo, Meta } from 'components/models';
-// import ExampleComponent from 'components/ExampleComponent.vue';
-//
-// const todos = ref<Todo[]>([
-//   {
-//     id: 1,
-//     content: 'ct1'
-//   },
-//   {
-//     id: 2,
-//     content: 'ct2'
-//   },
-//   {
-//     id: 3,
-//     content: 'ct3'
-//   },
-//   {
-//     id: 4,
-//     content: 'ct4'
-//   },
-//   {
-//     id: 5,
-//     content: 'ct5'
-//   }
-// ]);
-//
-// const meta = ref<Meta>({
-//   totalCount: 1200
-// });
+import { ref } from 'vue';
+import { api } from 'boot/axios';
+import { useQuasar } from 'quasar';
+import { Property } from 'src/models/Property';
+import { errorNotification, successNotification } from 'boot/util';
+import { useMySessionStore } from 'stores/session';
+import type { Login, BaseResponseData, LoginResponse } from 'src/models/CustomTypes';
+import { useRouter } from 'vue-router';
+
+const $q = useQuasar();
+const $router = useRouter();
+const sessionStore = useMySessionStore();
+
+const isPassword = ref<boolean>(true);
+const loading = ref<boolean>(false);
+const loginField = ref<Login>({ userId: '', password: '' });
+
+async function login () {
+  loading.value = true;
+
+  try {
+    const loginResponse = await api
+      .post<BaseResponseData<LoginResponse>>('auth/sign-in', loginField.value);
+
+    const authToken = {
+      accessToken: loginResponse.headers['access-token'],
+      refreshToken: loginResponse.headers['refresh-token'],
+      expiryTimeInSeconds: loginResponse.headers['access-expiry']
+    };
+
+    const isAdmin = loginResponse.data.data
+      .roles.filter(role => role.isAdmin)
+      .length > 0;
+
+    $q.localStorage.set(Property.AUTH_TOKEN, authToken);
+    sessionStore.initSession(loginResponse.data.data.userId, isAdmin, authToken);
+    api.defaults.headers.common.Authorization = `Bearer ${authToken.accessToken}`;
+
+    successNotification(loginResponse.data.message);
+    loading.value = false;
+    await $router.push({ name: 'Admin-Dashboard' })
+  } catch (error) {
+    loading.value = false;
+    console.log(error);
+    errorNotification('Unable to complete request. Please try again ');
+  }
+}
 </script>
