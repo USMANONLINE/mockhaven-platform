@@ -72,3 +72,12 @@ export interface RestApplication {
   methods: Array<string>;
   persistRequestPayload: boolean;
 }
+
+export interface CreateAccount {
+  firstName: string;
+  surName: string;
+  emailAddress: string;
+  phoneNumber: string;
+  businessName: string;
+  password: string;
+}
