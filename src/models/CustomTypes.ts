@@ -62,3 +62,13 @@ export interface RouteMeta {
   label: string;
   icon: string;
 }
+
+export interface RestApplication {
+  name: string;
+  basePath: string;
+  description: string;
+  headers: Array<string>;
+  origins: Array<string>;
+  methods: Array<string>;
+  persistRequestPayload: boolean;
+}
