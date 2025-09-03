@@ -6,7 +6,8 @@
           <div class="col-xs-12 col-sm-12 col-md-7 bg-secondary"></div>
           <div class="col-xs-12 col-sm-12 col-md-5 flex flex-center">
             <div style="width: 500px">
-              <p class="text-subtitle1 text-bold">MockHaven - Sign In</p>
+              <div class="text-subtitle1 text-bold">Sign In to your account</div>
+              <p class="text-subtitle2">Don't have an account? <router-link to="/create-account">Sign up</router-link> for a free trial</p>
               <form @submit.prevent="login">
                 <q-input
                   autofocus
@@ -46,6 +47,7 @@
                     type="submit"
                     class="float-right"
                     color="primary"
+                    glossy
                   />
                 </div>
               </form>
